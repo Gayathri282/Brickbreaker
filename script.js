@@ -1,6 +1,6 @@
 /**
  * Child-Friendly Brick Breaker Game Engine
- * Includes Web Audio API Sound Generator, Pastel Aesthetics,
+ * Includes Web Audio API Sound Generator, Engaging BGM Loop, Pastel Aesthetics,
  * Particles, High Score, Power-ups, and Mobile Touch Support.
  */
 
@@ -18,14 +18,12 @@ const finalScoreEl = document.getElementById('final-score');
 const finalLevelEl = document.getElementById('final-level');
 const playBtn = document.getElementById('play-btn');
 const againBtn = document.getElementById('again-btn');
-const soundBtn = document.getElementById('sound-toggle');
 const levelBanner = document.getElementById('level-banner');
 
 // Audio Generator using Web Audio API
 class SoundController {
   constructor() {
     this.ctx = null;
-    this.muted = false;
   }
 
   init() {
@@ -38,8 +36,8 @@ class SoundController {
     }
   }
 
-  playTone(freq, type, duration, startVol = 0.3, endVol = 0) {
-    if (this.muted || !this.ctx) return;
+  playTone(freq, type, duration, startVol = 0.25, endVol = 0) {
+    if (!this.ctx) return;
     try {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
@@ -51,29 +49,27 @@ class SoundController {
       gain.connect(this.ctx.destination);
       osc.start();
       osc.stop(this.ctx.currentTime + duration);
-    } catch (e) {
-      // Audio fallback silent ignore
-    }
+    } catch (e) {}
   }
 
   hitBrick() {
     this.init();
-    if (this.muted || !this.ctx) return;
+    if (!this.ctx) return;
     const freqs = [350, 440, 523, 659, 784, 880];
     const f = freqs[Math.floor(Math.random() * freqs.length)];
-    this.playTone(f, 'sine', 0.1, 0.25, 0.01);
+    this.playTone(f, 'sine', 0.1, 0.2, 0.01);
   }
 
   hitPaddle() {
     this.init();
-    if (this.muted || !this.ctx) return;
+    if (!this.ctx) return;
     try {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       osc.type = 'triangle';
       osc.frequency.setValueAtTime(220, this.ctx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(440, this.ctx.currentTime + 0.12);
-      gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+      gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
       gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
       osc.connect(gain);
       gain.connect(this.ctx.destination);
@@ -84,39 +80,84 @@ class SoundController {
 
   powerup() {
     this.init();
-    if (this.muted || !this.ctx) return;
+    if (!this.ctx) return;
     const notes = [523.25, 659.25, 783.99, 1046.50];
     notes.forEach((freq, idx) => {
       setTimeout(() => {
-        this.playTone(freq, 'sine', 0.15, 0.25, 0.01);
+        this.playTone(freq, 'sine', 0.15, 0.2, 0.01);
       }, idx * 60);
     });
   }
 
   levelUp() {
     this.init();
-    if (this.muted || !this.ctx) return;
+    if (!this.ctx) return;
     const fanfare = [440, 554.37, 659.25, 880];
     fanfare.forEach((freq, idx) => {
       setTimeout(() => {
-        this.playTone(freq, 'triangle', 0.2, 0.3, 0.01);
+        this.playTone(freq, 'triangle', 0.2, 0.25, 0.01);
       }, idx * 90);
     });
   }
 
   gameOver() {
     this.init();
-    if (this.muted || !this.ctx) return;
+    if (!this.ctx) return;
     const sadNotes = [400, 350, 300, 250];
     sadNotes.forEach((freq, idx) => {
       setTimeout(() => {
-        this.playTone(freq, 'sawtooth', 0.25, 0.2, 0.01);
+        this.playTone(freq, 'sawtooth', 0.25, 0.18, 0.01);
       }, idx * 120);
     });
   }
 }
 
+// Engaging Background Music Sequencer (Web Audio API)
+class BGMController {
+  constructor(soundCtrl) {
+    this.sound = soundCtrl;
+    this.isPlaying = false;
+    this.timer = null;
+    this.step = 0;
+    // Catchy upbeat melody notes (C Major pentatonic arpeggio pattern)
+    this.melody = [
+      261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 261.63, 392.00,
+      293.66, 349.23, 440.00, 587.33, 440.00, 349.23, 293.66, 440.00,
+      329.63, 392.00, 493.88, 659.25, 493.88, 392.00, 329.63, 523.25,
+      349.23, 440.00, 523.25, 698.46, 523.25, 440.00, 392.00, 329.63
+    ];
+  }
+
+  start() {
+    if (this.isPlaying) return;
+    this.sound.init();
+    this.isPlaying = true;
+    this.step = 0;
+    this.timer = setInterval(() => {
+      if (!this.isPlaying || !this.sound.ctx) return;
+      const freq = this.melody[this.step % this.melody.length];
+      const isAccent = (this.step % 4 === 0);
+      this.sound.playTone(freq, 'sine', 0.14, isAccent ? 0.08 : 0.04, 0.002);
+
+      // Bass accent
+      if (this.step % 8 === 0) {
+        this.sound.playTone(130.81, 'triangle', 0.25, 0.06, 0.005);
+      }
+      this.step++;
+    }, 185); // Upbeat 160 BPM tempo
+  }
+
+  stop() {
+    this.isPlaying = false;
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+  }
+}
+
 const sounds = new SoundController();
+const bgm = new BGMController(sounds);
 
 // Game State Variables
 let W = 0, H = 0, dpr = 1;
@@ -151,7 +192,7 @@ function resize() {
 
   if (paddle) {
     paddle.w = Math.min(140, Math.max(100, W * 0.28));
-    paddle.y = H - 54;
+    paddle.y = H - 95; // Positioned higher above bottom screen
     paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
   }
 }
@@ -198,7 +239,7 @@ function createBall(x, y, vx, vy) {
   const speedScale = 1 + (level - 1) * 0.06;
   return {
     x: x !== undefined ? x : W / 2,
-    y: y !== undefined ? y : H - 110,
+    y: y !== undefined ? y : H - 145, // Set initial ball position aligned with raised paddle
     r: 9,
     vx: vx !== undefined ? vx : (Math.random() < 0.5 ? -1 : 1) * 210 * speedScale,
     vy: vy !== undefined ? vy : -350 * speedScale,
@@ -218,7 +259,7 @@ function resetGame() {
     w: pw,
     h: 16,
     x: (W - pw) / 2,
-    y: H - 54,
+    y: H - 95, // Position paddle higher up
     hasGlow: false
   };
 
@@ -229,6 +270,7 @@ function resetGame() {
 
 function startGame() {
   sounds.init();
+  bgm.start(); // Start engaging background tone
   cancelAnimationFrame(animationFrameId);
   resetGame();
   running = true;
@@ -241,6 +283,7 @@ function startGame() {
 
 function finishGame(title = 'GREAT JOB!') {
   running = false;
+  bgm.stop(); // Stop background tone on game over
   sounds.gameOver();
   if (score > highScore) {
     highScore = score;
@@ -299,12 +342,6 @@ window.addEventListener('keydown', e => {
 
 playBtn.addEventListener('click', startGame);
 againBtn.addEventListener('click', startGame);
-
-soundBtn.addEventListener('click', () => {
-  sounds.muted = !sounds.muted;
-  soundBtn.textContent = sounds.muted ? '🔇' : '🔊';
-  soundBtn.classList.toggle('muted', sounds.muted);
-});
 
 // Physics helper: Circle vs Rectangle Collision
 function rectHitCircle(rect, circle) {
@@ -408,7 +445,7 @@ function update(dt) {
       break;
     }
 
-    // Bottom loss
+    // Bottom loss (below raised paddle)
     if (ball.y - ball.r > H) {
       balls.splice(i, 1);
     }
@@ -551,7 +588,7 @@ function draw() {
     ctx.restore();
   });
 
-  // 3. Draw Paddle (Glossy rounded pastel pill)
+  // 3. Draw Paddle (Raised Position, Glossy rounded pastel pill)
   if (paddle) {
     ctx.save();
     ctx.shadowColor = paddle.hasGlow ? '#b5ead7' : 'rgba(150, 150, 180, 0.25)';
