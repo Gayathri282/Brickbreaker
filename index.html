@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Brick Breaker - Candy Land Edition</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container">
+    <!-- Ambient floating background bubbles -->
+    <div class="bg-bubble" style="left: 10%; width: 40px; height: 40px; animation-duration: 8s;"></div>
+    <div class="bg-bubble" style="left: 30%; width: 60px; height: 60px; animation-duration: 12s; animation-delay: 2s;"></div>
+    <div class="bg-bubble" style="left: 65%; width: 50px; height: 50px; animation-duration: 10s; animation-delay: 1s;"></div>
+    <div class="bg-bubble" style="left: 85%; width: 70px; height: 70px; animation-duration: 14s; animation-delay: 3s;"></div>
+
+    <!-- Main Game Canvas -->
+    <canvas id="canvas"></canvas>
+
+    <!-- Header HUD -->
+    <div class="hud">
+      <div class="hud-group">
+        <div class="hud-badge" id="score">⭐ 0</div>
+        <div class="hud-badge" id="level">🚀 Level 1</div>
+      </div>
+      <div class="hud-group">
+        <div class="hud-badge" id="high-score">🏆 0</div>
+        <div class="hud-badge lives-badge" id="lives">💖💖💖</div>
+        <button id="sound-toggle" class="btn-icon" aria-label="Toggle Sound">🔊</button>
+      </div>
+    </div>
+
+    <!-- Level Up Banner -->
+    <div id="level-banner" class="level-banner">🌟 Level 1! 🌟</div>
+
+    <!-- Start Overlay Screen -->
+    <div id="start-screen" class="overlay">
+      <div class="card">
+        <h1>🧱 CANDY BRICK BREAKER</h1>
+        <p>Drag or move your finger to catch the bouncy ball. Break all the candy bricks and collect fun power-ups! 🍬⭐</p>
+        <button id="play-btn" class="btn-primary">PLAY NOW</button>
+      </div>
+    </div>
+
+    <!-- Game Over Overlay Screen -->
+    <div id="over-screen" class="overlay hidden">
+      <div class="card">
+        <h1 id="end-title">GREAT JOB! 🎉</h1>
+        <div class="stats-box">
+          <div>Final Score: <span id="final-score">0</span> ⭐</div>
+          <div>Level Reached: <span id="final-level">1</span> 🚀</div>
+        </div>
+        <button id="again-btn" class="btn-primary">PLAY AGAIN</button>
+      </div>
+    </div>
+
+    <!-- Hint Banner -->
+    <div class="hint-banner">Move paddle to play • Catch falling star power-ups!</div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

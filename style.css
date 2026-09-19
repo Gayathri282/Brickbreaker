@@ -1,0 +1,274 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #fbf7f4;
+  font-family: 'Fredoka', cursive, system-ui, -apple-system, sans-serif;
+  touch-action: none;
+}
+
+#game-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* Soothing Dreamy Pastel Sky Gradient */
+  background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 50%, #b5ead7 100%);
+  overflow: hidden;
+}
+
+/* Background floating ambient bubbles in pastel white/pink */
+.bg-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+  animation: floatUp linear infinite;
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.6);
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(110vh) scale(0.8) rotate(0deg); opacity: 0; }
+  20% { opacity: 0.7; }
+  80% { opacity: 0.7; }
+  100% { transform: translateY(-20vh) scale(1.2) rotate(360deg); opacity: 0; }
+}
+
+canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* HUD Header Bar */
+.hud {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.hud-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud-badge {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 20px;
+  padding: 6px 14px;
+  color: #4a4e69;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(138, 149, 180, 0.18);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-badge.lives-badge {
+  letter-spacing: 2px;
+  font-size: 18px;
+}
+
+.btn-icon {
+  pointer-events: auto;
+  background: #ffb7b2;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  font-size: 20px;
+  color: #4a4e69;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 0 #e89893, 0 6px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.1s ease, background 0.2s ease;
+}
+
+.btn-icon:hover {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.btn-icon:active {
+  transform: translateY(2px) scale(0.95);
+  box-shadow: 0 2px 0 #e89893;
+}
+
+.btn-icon.muted {
+  background: #c7ceea;
+  box-shadow: 0 4px 0 #a2abbd;
+}
+
+/* Overlays & Modals */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  color: #4a4e69;
+  background: rgba(244, 240, 248, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 24px;
+  z-index: 20;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(252, 245, 255, 0.95));
+  border: 4px solid #ffffff;
+  border-radius: 32px;
+  padding: 32px 24px;
+  max-width: 380px;
+  width: 90%;
+  color: #4a4e69;
+  box-shadow: 0 20px 45px rgba(160, 150, 180, 0.25), inset 0 2px 4px rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.card h1 {
+  font-size: 32px;
+  margin: 0 0 12px;
+  color: #ff9aa2;
+  text-shadow: 0 2px 0 #ffb7b2, 0 4px 10px rgba(255, 154, 162, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.card p {
+  font-size: 16px;
+  line-height: 1.5;
+  color: #6c757d;
+  margin: 0 0 20px;
+  font-weight: 600;
+}
+
+.stats-box {
+  background: rgba(226, 240, 203, 0.5);
+  border: 2px dashed #b5ead7;
+  border-radius: 16px;
+  padding: 12px 20px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.stats-box div {
+  font-size: 17px;
+  font-weight: 700;
+  color: #4a4e69;
+  margin: 4px 0;
+}
+
+/* Child-Friendly Bouncy Pastel Action Buttons */
+.btn-primary {
+  border: 3px solid #ffffff;
+  border-radius: 999px;
+  padding: 14px 40px;
+  font-size: 20px;
+  font-weight: 700;
+  font-family: inherit;
+  background: linear-gradient(180deg, #b5ead7, #85d7bf);
+  color: #3d5a4e;
+  cursor: pointer;
+  box-shadow: 0 7px 0 #60b399, 0 10px 20px rgba(133, 215, 191, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 10px 0 #60b399, 0 14px 24px rgba(133, 215, 191, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(4px);
+  box-shadow: 0 3px 0 #60b399, 0 5px 10px rgba(133, 215, 191, 0.2);
+}
+
+/* Playful Bottom Hint Banner */
+.hint-banner {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  padding: 6px 18px;
+  color: #4a4e69;
+  font-size: 13px;
+  font-weight: 600;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(150, 150, 170, 0.15);
+  z-index: 10;
+}
+
+/* Level Up Announcement Banner */
+.level-banner {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  background: linear-gradient(135deg, #ffb7b2, #ffdac1);
+  border: 4px solid #ffffff;
+  padding: 16px 36px;
+  border-radius: 28px;
+  color: #4a4e69;
+  font-size: 30px;
+  font-weight: 700;
+  box-shadow: 0 12px 30px rgba(255, 183, 178, 0.4);
+  pointer-events: none;
+  z-index: 15;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+  opacity: 0;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.6);
+}
+
+.level-banner.show {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
