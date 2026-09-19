@@ -1,6 +1,7 @@
 /**
  * Child-Friendly Brick Breaker Game Engine
  * Features:
+ * - Sound effect on losing a life
  * - Tab/Screen close visibility pausing
  * - Sound effects on leveling up, gaining points, game over
  * - Continuous engaging background melody
@@ -84,6 +85,25 @@ class SoundController {
     } catch (e) {}
   }
 
+  // Sound effect when losing a life
+  loseLife() {
+    this.init();
+    if (!this.ctx) return;
+    try {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(329.63, this.ctx.currentTime); // E4
+      osc.frequency.exponentialRampToValueAtTime(196.00, this.ctx.currentTime + 0.25); // G3
+      gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start();
+      osc.stop(this.ctx.currentTime + 0.25);
+    } catch (e) {}
+  }
+
   // Powerup collection chime
   powerup() {
     this.init();
@@ -128,7 +148,6 @@ class BGMController {
     this.isPlaying = false;
     this.timer = null;
     this.step = 0;
-    // Catchy upbeat melody notes (C Major pentatonic arpeggio pattern)
     this.melody = [
       261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 261.63, 392.00,
       293.66, 349.23, 440.00, 587.33, 440.00, 349.23, 293.66, 440.00,
@@ -148,7 +167,6 @@ class BGMController {
       const isAccent = (this.step % 4 === 0);
       this.sound.playTone(freq, 'sine', 0.14, isAccent ? 0.07 : 0.035, 0.002);
 
-      // Bass accent
       if (this.step % 8 === 0) {
         this.sound.playTone(130.81, 'triangle', 0.22, 0.05, 0.005);
       }
@@ -201,7 +219,7 @@ function resize() {
 
   if (paddle) {
     paddle.w = Math.min(140, Math.max(100, W * 0.28));
-    paddle.y = H - 95; // Positioned higher above bottom screen
+    paddle.y = H - 95;
     paddle.x = Math.max(0, Math.min(W - paddle.w, paddle.x));
   }
 }
@@ -307,8 +325,8 @@ function startGame() {
 
 function finishGame(title = 'GREAT JOB!') {
   running = false;
-  bgm.stop(); // Pause engaging music on game over
-  sounds.gameOver(); // Play cute Game Over sound effect
+  bgm.stop();
+  sounds.gameOver();
   if (score > highScore) {
     highScore = score;
     localStorage.setItem('brick_breaker_highscore', highScore.toString());
@@ -321,7 +339,7 @@ function finishGame(title = 'GREAT JOB!') {
 }
 
 function showLevelBanner() {
-  sounds.levelUp(); // Play festive Level Up sound effect!
+  sounds.levelUp();
   levelBanner.textContent = `🌟 Level ${level}! 🌟`;
   levelBanner.classList.add('show');
   setTimeout(() => {
@@ -371,7 +389,7 @@ window.addEventListener('keydown', e => {
 playBtn.addEventListener('click', startGame);
 againBtn.addEventListener('click', startGame);
 
-// Collision detection
+// Collision helper
 function rectHitCircle(rect, circle) {
   const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.w));
   const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.h));
@@ -440,7 +458,7 @@ function update(dt) {
       }
 
       b.hp--;
-      sounds.hitBrick(); // Play sound effect on gaining points / hitting bricks!
+      sounds.hitBrick();
 
       if (b.hp <= 0) {
         b.alive = false;
@@ -478,9 +496,10 @@ function update(dt) {
     }
   }
 
-  // If all balls lost
+  // If all balls lost (Life Lost)
   if (balls.length === 0) {
     lives--;
+    sounds.loseLife(); // Play lose life sound effect!
     updateHUD();
     if (lives <= 0) {
       finishGame();
@@ -547,7 +566,7 @@ function update(dt) {
     makeBricks();
     balls = [createBall()];
     powerups = [];
-    showLevelBanner(); // Level up sound effect plays inside showLevelBanner()
+    showLevelBanner();
     updateHUD();
   }
 }
