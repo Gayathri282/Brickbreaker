@@ -1,7 +1,7 @@
 /**
  * Child-Friendly Brick Breaker Game Engine
  * Features:
- * - Sound effect on losing a life
+ * - Subtle sound effect on losing a life
  * - Tab/Screen close visibility pausing
  * - Sound effects on leveling up, gaining points, game over
  * - Continuous engaging background melody
@@ -85,22 +85,22 @@ class SoundController {
     } catch (e) {}
   }
 
-  // Sound effect when losing a life
+  // Subtle, soft sound effect when losing a life
   loseLife() {
     this.init();
     if (!this.ctx) return;
     try {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(329.63, this.ctx.currentTime); // E4
-      osc.frequency.exponentialRampToValueAtTime(196.00, this.ctx.currentTime + 0.25); // G3
-      gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(240.00, this.ctx.currentTime); // Soft low C4
+      osc.frequency.exponentialRampToValueAtTime(160.00, this.ctx.currentTime + 0.14); // Gentle drop to E3
+      gain.gain.setValueAtTime(0.09, this.ctx.currentTime); // Subtle volume
+      gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.14);
       osc.connect(gain);
       gain.connect(this.ctx.destination);
       osc.start();
-      osc.stop(this.ctx.currentTime + 0.25);
+      osc.stop(this.ctx.currentTime + 0.14);
     } catch (e) {}
   }
 
@@ -496,10 +496,10 @@ function update(dt) {
     }
   }
 
-  // If all balls lost (Life Lost)
+  // If all balls lost
   if (balls.length === 0) {
     lives--;
-    sounds.loseLife(); // Play lose life sound effect!
+    sounds.loseLife(); // Play subtle life loss sound
     updateHUD();
     if (lives <= 0) {
       finishGame();
