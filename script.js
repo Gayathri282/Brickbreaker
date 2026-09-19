@@ -1,7 +1,11 @@
 /**
  * Child-Friendly Brick Breaker Game Engine
- * Includes Web Audio API Sound Generator, Engaging BGM Loop, Pastel Aesthetics,
- * Particles, High Score, Power-ups, and Mobile Touch Support.
+ * Features:
+ * - Tab/Screen close visibility pausing
+ * - Sound effects on leveling up, gaining points, game over
+ * - Continuous engaging background melody
+ * - Clean UI with no sound toggle icons
+ * - Raised paddle position & pastel candy aesthetics
  */
 
 // DOM Elements
@@ -20,7 +24,7 @@ const playBtn = document.getElementById('play-btn');
 const againBtn = document.getElementById('again-btn');
 const levelBanner = document.getElementById('level-banner');
 
-// Audio Generator using Web Audio API
+// Web Audio Sound Generator
 class SoundController {
   constructor() {
     this.ctx = null;
@@ -52,14 +56,16 @@ class SoundController {
     } catch (e) {}
   }
 
+  // Sound effect for gaining points / hitting bricks
   hitBrick() {
     this.init();
     if (!this.ctx) return;
-    const freqs = [350, 440, 523, 659, 784, 880];
+    const freqs = [523.25, 659.25, 783.99, 880.00, 1046.50];
     const f = freqs[Math.floor(Math.random() * freqs.length)];
-    this.playTone(f, 'sine', 0.1, 0.2, 0.01);
+    this.playTone(f, 'sine', 0.12, 0.22, 0.01);
   }
 
+  // Bouncy tone on paddle bounce
   hitPaddle() {
     this.init();
     if (!this.ctx) return;
@@ -67,8 +73,8 @@ class SoundController {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(220, this.ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(440, this.ctx.currentTime + 0.12);
+      osc.frequency.setValueAtTime(240, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(480, this.ctx.currentTime + 0.12);
       gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
       gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
       osc.connect(gain);
@@ -78,36 +84,39 @@ class SoundController {
     } catch (e) {}
   }
 
+  // Powerup collection chime
   powerup() {
     this.init();
     if (!this.ctx) return;
     const notes = [523.25, 659.25, 783.99, 1046.50];
     notes.forEach((freq, idx) => {
       setTimeout(() => {
-        this.playTone(freq, 'sine', 0.15, 0.2, 0.01);
-      }, idx * 60);
+        this.playTone(freq, 'sine', 0.15, 0.22, 0.01);
+      }, idx * 55);
     });
   }
 
+  // Festive chime on Level Up!
   levelUp() {
     this.init();
     if (!this.ctx) return;
-    const fanfare = [440, 554.37, 659.25, 880];
+    const fanfare = [523.25, 659.25, 783.99, 1046.50, 1318.51];
     fanfare.forEach((freq, idx) => {
       setTimeout(() => {
-        this.playTone(freq, 'triangle', 0.2, 0.25, 0.01);
-      }, idx * 90);
+        this.playTone(freq, 'triangle', 0.22, 0.28, 0.01);
+      }, idx * 80);
     });
   }
 
+  // Sad gentle melody on Game Over
   gameOver() {
     this.init();
     if (!this.ctx) return;
-    const sadNotes = [400, 350, 300, 250];
+    const sadNotes = [440, 392, 349.23, 293.66];
     sadNotes.forEach((freq, idx) => {
       setTimeout(() => {
-        this.playTone(freq, 'sawtooth', 0.25, 0.18, 0.01);
-      }, idx * 120);
+        this.playTone(freq, 'sawtooth', 0.28, 0.18, 0.01);
+      }, idx * 110);
     });
   }
 }
@@ -137,14 +146,14 @@ class BGMController {
       if (!this.isPlaying || !this.sound.ctx) return;
       const freq = this.melody[this.step % this.melody.length];
       const isAccent = (this.step % 4 === 0);
-      this.sound.playTone(freq, 'sine', 0.14, isAccent ? 0.08 : 0.04, 0.002);
+      this.sound.playTone(freq, 'sine', 0.14, isAccent ? 0.07 : 0.035, 0.002);
 
       // Bass accent
       if (this.step % 8 === 0) {
-        this.sound.playTone(130.81, 'triangle', 0.25, 0.06, 0.005);
+        this.sound.playTone(130.81, 'triangle', 0.22, 0.05, 0.005);
       }
       this.step++;
-    }, 185); // Upbeat 160 BPM tempo
+    }, 185);
   }
 
   stop() {
@@ -199,6 +208,21 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
+// Automatic Pause on Screen Closing / Tab Switching
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    paused = true;
+    bgm.stop();
+  } else if (running && !paused) {
+    bgm.start();
+  }
+});
+
+window.addEventListener('blur', () => {
+  paused = true;
+  bgm.stop();
+});
+
 function updateHUD() {
   scoreEl.textContent = '⭐ ' + score;
   levelEl.textContent = '🚀 Level ' + level;
@@ -239,7 +263,7 @@ function createBall(x, y, vx, vy) {
   const speedScale = 1 + (level - 1) * 0.06;
   return {
     x: x !== undefined ? x : W / 2,
-    y: y !== undefined ? y : H - 145, // Set initial ball position aligned with raised paddle
+    y: y !== undefined ? y : H - 145,
     r: 9,
     vx: vx !== undefined ? vx : (Math.random() < 0.5 ? -1 : 1) * 210 * speedScale,
     vy: vy !== undefined ? vy : -350 * speedScale,
@@ -259,7 +283,7 @@ function resetGame() {
     w: pw,
     h: 16,
     x: (W - pw) / 2,
-    y: H - 95, // Position paddle higher up
+    y: H - 95,
     hasGlow: false
   };
 
@@ -270,7 +294,7 @@ function resetGame() {
 
 function startGame() {
   sounds.init();
-  bgm.start(); // Start engaging background tone
+  bgm.start();
   cancelAnimationFrame(animationFrameId);
   resetGame();
   running = true;
@@ -283,8 +307,8 @@ function startGame() {
 
 function finishGame(title = 'GREAT JOB!') {
   running = false;
-  bgm.stop(); // Stop background tone on game over
-  sounds.gameOver();
+  bgm.stop(); // Pause engaging music on game over
+  sounds.gameOver(); // Play cute Game Over sound effect
   if (score > highScore) {
     highScore = score;
     localStorage.setItem('brick_breaker_highscore', highScore.toString());
@@ -297,7 +321,7 @@ function finishGame(title = 'GREAT JOB!') {
 }
 
 function showLevelBanner() {
-  sounds.levelUp();
+  sounds.levelUp(); // Play festive Level Up sound effect!
   levelBanner.textContent = `🌟 Level ${level}! 🌟`;
   levelBanner.classList.add('show');
   setTimeout(() => {
@@ -305,7 +329,7 @@ function showLevelBanner() {
   }, 1600);
 }
 
-// Particle Bursts (Pastel Stars & Sparkles)
+// Particle Bursts
 function spawnBurst(x, y, color = '#fff5ba', count = 12) {
   for (let i = 0; i < count; i++) {
     const angle = Math.random() * Math.PI * 2;
@@ -337,13 +361,17 @@ window.addEventListener('keydown', e => {
   if (!paddle || !running) return;
   if (e.key === 'ArrowLeft') movePaddle(paddle.x + paddle.w / 2 - 50);
   if (e.key === 'ArrowRight') movePaddle(paddle.x + paddle.w / 2 + 50);
-  if (e.key === ' ') paused = !paused;
+  if (e.key === ' ') {
+    paused = !paused;
+    if (paused) bgm.stop();
+    else bgm.start();
+  }
 });
 
 playBtn.addEventListener('click', startGame);
 againBtn.addEventListener('click', startGame);
 
-// Physics helper: Circle vs Rectangle Collision
+// Collision detection
 function rectHitCircle(rect, circle) {
   const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.w));
   const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.h));
@@ -389,7 +417,7 @@ function update(dt) {
       sounds.hitPaddle();
       const hitRatio = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
       const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
-      const angle = hitRatio * (Math.PI / 3); // Max 60 deg angle
+      const angle = hitRatio * (Math.PI / 3);
       ball.vx = speed * Math.sin(angle);
       ball.vy = -Math.abs(speed * Math.cos(angle));
       spawnBurst(ball.x, paddle.y, '#b5ead7', 6);
@@ -412,14 +440,13 @@ function update(dt) {
       }
 
       b.hp--;
-      sounds.hitBrick();
+      sounds.hitBrick(); // Play sound effect on gaining points / hitting bricks!
 
       if (b.hp <= 0) {
         b.alive = false;
         score += 10;
         spawnBurst(b.x + b.w / 2, b.y + b.h / 2, b.color.main, 14);
 
-        // Powerup Drop (16% chance)
         if (Math.random() < 0.16) {
           const types = ['wide', 'life', 'slow', 'multiball'];
           const type = types[Math.floor(Math.random() * types.length)];
@@ -445,7 +472,7 @@ function update(dt) {
       break;
     }
 
-    // Bottom loss (below raised paddle)
+    // Bottom loss
     if (ball.y - ball.r > H) {
       balls.splice(i, 1);
     }
@@ -474,7 +501,6 @@ function update(dt) {
       p.x + p.w > paddle.x &&
       p.x < paddle.x + paddle.w
     ) {
-      // Powerup Caught!
       sounds.powerup();
       spawnBurst(p.x + p.w / 2, p.y, '#fff5ba', 16);
 
@@ -521,7 +547,7 @@ function update(dt) {
     makeBricks();
     balls = [createBall()];
     powerups = [];
-    showLevelBanner();
+    showLevelBanner(); // Level up sound effect plays inside showLevelBanner()
     updateHUD();
   }
 }
@@ -530,30 +556,25 @@ function update(dt) {
 function draw() {
   ctx.clearRect(0, 0, W, H);
 
-  // 1. Draw Bricks (Pastel Pill style)
+  // 1. Draw Bricks
   bricks.forEach(b => {
     if (!b.alive) return;
     ctx.save();
-    
-    // Soft shadow
     ctx.shadowColor = 'rgba(150, 150, 180, 0.2)';
     ctx.shadowBlur = 6;
     ctx.shadowOffsetY = 3;
 
-    // Body
     ctx.fillStyle = b.hp > 1 ? '#d8b4fe' : b.color.main;
     ctx.beginPath();
     ctx.roundRect(b.x, b.y, b.w, b.h, 8);
     ctx.fill();
 
-    // Top Gloss Highlight
     ctx.shadowColor = 'transparent';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
     ctx.beginPath();
     ctx.roundRect(b.x + 3, b.y + 3, b.w - 6, b.h * 0.4, [6, 6, 2, 2]);
     ctx.fill();
 
-    // Tough Brick Emblem
     if (b.hp > 1) {
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 12px Fredoka, sans-serif';
@@ -563,7 +584,7 @@ function draw() {
     ctx.restore();
   });
 
-  // 2. Draw Power-ups (Cute Pastel Bubbles)
+  // 2. Draw Power-ups
   powerups.forEach(p => {
     ctx.save();
     ctx.fillStyle = p.type === 'wide' ? '#c7ceea' : p.type === 'life' ? '#ffb7b2' : p.type === 'slow' ? '#b5ead7' : '#ffdac1';
@@ -573,12 +594,10 @@ function draw() {
     ctx.arc(p.x + p.w / 2, p.y + p.h / 2, p.w / 2, 0, Math.PI * 2);
     ctx.fill();
 
-    // White Inner Glow Ring
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Icon
     ctx.shadowBlur = 0;
     ctx.font = '16px Fredoka, sans-serif';
     ctx.textAlign = 'center';
@@ -588,7 +607,7 @@ function draw() {
     ctx.restore();
   });
 
-  // 3. Draw Paddle (Raised Position, Glossy rounded pastel pill)
+  // 3. Draw Paddle
   if (paddle) {
     ctx.save();
     ctx.shadowColor = paddle.hasGlow ? '#b5ead7' : 'rgba(150, 150, 180, 0.25)';
@@ -603,7 +622,6 @@ function draw() {
     ctx.roundRect(paddle.x, paddle.y, paddle.w, paddle.h, 10);
     ctx.fill();
 
-    // Pastel strip
     ctx.shadowBlur = 0;
     ctx.fillStyle = paddle.hasGlow ? '#85d7bf' : '#ffb7b2';
     ctx.beginPath();
@@ -612,10 +630,9 @@ function draw() {
     ctx.restore();
   }
 
-  // 4. Draw Balls (Shiny Soft Pastel Spheres)
+  // 4. Draw Balls
   balls.forEach(ball => {
     ctx.save();
-    // Trail
     ball.trail.forEach(t => {
       ctx.fillStyle = `rgba(255, 255, 255, ${t.alpha * 0.45})`;
       ctx.beginPath();
@@ -623,11 +640,9 @@ function draw() {
       ctx.fill();
     });
 
-    // Outer Glow
     ctx.shadowColor = '#ffffff';
     ctx.shadowBlur = 10;
 
-    // Ball Gradient
     const bGrad = ctx.createRadialGradient(
       ball.x - ball.r * 0.3, ball.y - ball.r * 0.3, 1,
       ball.x, ball.y, ball.r
